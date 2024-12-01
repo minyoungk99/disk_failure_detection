@@ -2,16 +2,13 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-data = pd.read_csv("C:\\Users\\minyo\\OneDrive\\Desktop\\harddrive.csv") # 3,179,295 x 95
+data = pd.read_csv("C:\\Users\\minyo\\OneDrive\\Desktop\\disk temp\\harddrive.csv") # 3,179,295 x 95
 #data = pd.read_csv('.\\data\\hitachi_data.csv') # subset, 100,000 x 95
 
 # remove all raw columns
 data.drop(list(data.filter(regex="raw$")), axis=1, inplace=True)
-<<<<<<< HEAD
-data.drop(['serial_number', 'date'], inplace=True, axis=1)
-=======
-data.drop(['serial_number'], inplace=True, axis=1)
->>>>>>> 3c684358ee438cf79cb9d2acb3a4bfb47fe22bc4
+#data.drop(['serial_number', 'date'], inplace=True, axis=1)
+#data.drop(['serial_number'], inplace=True, axis=1)
 #data.drop(['Unnamed: 0', 'serial_number'], inplace=True, axis=1)
 
 # create model_counts.xlsx
