@@ -6,8 +6,11 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA, KernelPCA
 from sklearn.naive_bayes import GaussianNB
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, confusion_matrix, roc_auc_score
 from sklearn.manifold import Isomap
+import scikitplot as skplt
+from sklearn.linear_model import LogisticRegression
+
 
 '''
 def plot_by_date(X, nrow, ncol):
@@ -141,15 +144,28 @@ def scatter_class(X, y):
     fail = X[y==1,:]
     plt.scatter(good[:,0], good[:,1], color='b', marker='.')
     plt.scatter(fail[:,0], fail[:,1], color='r', marker='.')
+    plt.xlabel("Principal Component 1")
+    plt.ylabel("Principal Component 2")
+    plt.show()
+    plt.scatter(good[:, 0], good[:, 2], color='b', marker='.')
+    plt.scatter(fail[:, 0], fail[:, 2], color='r', marker='.')
+    plt.xlabel("Principal Component 1")
+    plt.ylabel("Principal Component 3")
+    plt.show()
+    plt.scatter(good[:, 0], good[:, 3], color='b', marker='.')
+    plt.scatter(fail[:, 0], fail[:, 3], color='r', marker='.')
+    plt.xlabel("Principal Component 1")
+    plt.ylabel("Principal Component 4")
     plt.show()
 
-#kpca = KernelPCA(n_components=9, kernel='rbf')
-kpca = KernelPCA(n_components=2, kernel='rbf')
+
+kpca = KernelPCA(n_components=9, kernel='rbf')
+#kpca = KernelPCA(n_components=2, kernel='rbf')
 X_kpca_train = kpca.fit_transform(X_train)
-print("Kernel PCA X_train data:", X_kpca_train.shape)
+#print("Kernel PCA X_train data:", X_kpca_train.shape)
 
 # pca the test dataset
-#X_kpca_test = pca.transform(X_test)
+X_kpca_test = kpca.transform(X_test)
 scatter_class(X_kpca_train, y_train)
 
 
@@ -164,13 +180,16 @@ scatter_class(X_kpca_train, y_train)
 ####### Naive Guassian Bayes #######
 
 gnb = GaussianNB()
-gnb.fit(X_pca_train, y_train)
-gnb_pred = gnb.predict(X_pca_test)
-print("Gaussian Naive Bayes Accuracy:", accuracy_score(y_test, gnb_pred))
+gnb.fit(X_kpca_train, y_train)
+gnb_pred = gnb.predict(X_kpca_test)
 
-print(sum(y_test==1) / len(y_test))
-print(sum(gnb_pred==1) / len(gnb_pred))
+# plot confusion matrix
+skplt.metrics.plot_confusion_matrix(y_test, gnb_pred)
+plt.title("Gaussian Naive Bayes Confusion Matrix")
+plt.show()
 
-# ISOMAP testing
+#ROC AUC
+print(roc_auc_score(y_test, gnb_pred))
 
+# Linear Regression
 
