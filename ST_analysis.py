@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from imblearn.over_sampling import SMOTE
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, cross_validate
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA, KernelPCA
 from sklearn.naive_bayes import GaussianNB
@@ -10,6 +10,7 @@ from sklearn.metrics import accuracy_score, confusion_matrix, roc_auc_score
 from sklearn.manifold import Isomap
 import scikitplot as skplt
 from sklearn.linear_model import LogisticRegression
+from sklearn.neighbors import KNeighborsClassifier
 
 
 '''
@@ -159,14 +160,14 @@ def scatter_class(X, y):
     plt.show()
 
 
-kpca = KernelPCA(n_components=9, kernel='rbf')
-#kpca = KernelPCA(n_components=2, kernel='rbf')
+#kpca = KernelPCA(n_components=9, kernel='rbf')
+kpca = KernelPCA(n_components=2, kernel='rbf')
 X_kpca_train = kpca.fit_transform(X_train)
 #print("Kernel PCA X_train data:", X_kpca_train.shape)
 
 # pca the test dataset
 X_kpca_test = kpca.transform(X_test)
-scatter_class(X_kpca_train, y_train)
+#scatter_class(X_kpca_train, y_train)
 
 
 # ISOMAP on PCA'd data, else ISOMAP take too long
@@ -177,19 +178,70 @@ scatter_class(X_kpca_train, y_train)
 #X_iso_test = iso.transform(X_pca_test)
 #scatter_class(X_iso_train, y_train)
 
+def model_metrics(y_true, y_pred, model_name=''):
+    # plot confusion matrix
+    skplt.metrics.plot_confusion_matrix(y_true, y_pred)
+    plt.title(model_name + " Confusion Matrix")
+    plt.show()
+
+    # ROC AUC
+    print(model_name + " ROC AUC score:", round(roc_auc_score(y_true, y_pred),3))
+
 ####### Naive Guassian Bayes #######
+# default var_smoothing seems fine
+'''
+cv_scores = []
+smoothings = [1e-9, 1e-8, 1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1]
+for i in smoothings:
+    print(i)
+    gnb_test = GaussianNB(var_smoothing=i)
+    gnb_test.fit(X_kpca_train, y_train)
+    cv_results = cross_validate(gnb_test, X_kpca_train, y_train, cv=5)
+    print(cv_results['test_score'])
+    cv_scores.append(np.mean(cv_results['test_score']))
+
+plt.plot(cv_scores)
+plt.xlabel("var_smoothing")
+plt.ylabel("5-fold CV Mean Score")
+plt.title("5-fold CV Mean Score vs var_smoothing for Gaussian NB")
+plt.show()
+
+print(cv_scores)
+'''
 
 gnb = GaussianNB()
 gnb.fit(X_kpca_train, y_train)
 gnb_pred = gnb.predict(X_kpca_test)
+model_metrics(y_test, gnb_pred, "Gaussian Naive Bayes")
 
-# plot confusion matrix
-skplt.metrics.plot_confusion_matrix(y_test, gnb_pred)
-plt.title("Gaussian Naive Bayes Confusion Matrix")
+####### Logistic Regression #######
+logreg = LogisticRegression(random_state=99).fit(X_kpca_train, y_train)
+logreg_pred = logreg.predict(X_kpca_test)
+model_metrics(y_test, logreg_pred, "Logistic Regression")
+
+####### KNN #######
+# based on below commented code, pick K=4
+'''
+cv_scores = []
+n_neighbors = np.arange(1, 20)
+for i in n_neighbors:
+    knn_test = KNeighborsClassifier(n_neighbors=i)
+    knn_test.fit(X_kpca_train, y_train)
+    cv_results = cross_validate(knn_test, X_kpca_train, y_train, cv=5)
+    print(cv_results['test_score'])
+    cv_scores.append(np.mean(cv_results['test_score']))
+
+plt.plot(n_neighbors,cv_scores)
+plt.xlabel("Number of Neighbors")
+plt.ylabel("5-fold CV Mean Score")
+plt.title("5-fold CV Mean Score vs # of Neighbors for KNN")
 plt.show()
 
-#ROC AUC
-print(roc_auc_score(y_test, gnb_pred))
+print(n_neighbors[np.max(cv_scores) == cv_scores])
+print(cv_scores)
+'''
 
-# Linear Regression
-
+knn = KNeighborsClassifier(n_neighbors=4)
+knn.fit(X_kpca_train, y_train)
+knn_pred = knn.predict(X_kpca_test)
+model_metrics(y_test, knn_pred, "KNN")
