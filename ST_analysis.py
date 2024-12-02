@@ -246,8 +246,9 @@ knn_pred = knn.predict(X_kpca_test)
 model_metrics(y_test, knn_pred, "KNN")
 
 #visualize decision boundaries
-# referenced plot_classifier_comparison.py from module 9 demo code
-if n_components == 2:
+# referenced plot_classifier_comparison.py from module 9 demo code ISYE6740
+plot_comparison = False
+if (n_components == 2) and plot_comparison:
     classifiers = [gnb, logreg, knn]
     names = ["Gaussian NB", "Logistic Regression", "KNN N=4"]
 
@@ -275,9 +276,9 @@ if n_components == 2:
         ax.contourf(xx, yy, Z, cmap=cm, alpha=.8)
 
         # Plot the training points - uncomment to plot training data points
-        ax.scatter(X_kpca_train[:, 0], X_kpca_train[:, 1], c=y_train, cmap=cm_bright, edgecolors='k', marker='.', alpha=0.5)
+        #ax.scatter(X_kpca_train[:, 0], X_kpca_train[:, 1], c=y_train, cmap=cm_bright, edgecolors='k', marker='.', alpha=0.5)
         # Plot the testing points
-        #ax.scatter(X_kpca_test[:, 0], X_kpca_test[:, 1], c=y_test, cmap=cm_bright, edgecolors='k', alpha=0.6)
+        ax.scatter(X_kpca_test[:, 0], X_kpca_test[:, 1], c=y_test, cmap=cm_bright, edgecolors='k', alpha=0.6)
 
         ax.set_xlim(xx.min(), xx.max())
         ax.set_ylim(yy.min(), yy.max())
@@ -291,5 +292,75 @@ if n_components == 2:
     plt.show()
 
 
+### Test on different model from same manufacturer
+data2 = pd.read_csv('.\\data\\ST6000DX000_data.csv')
+data2.drop(list(data2.filter(regex="raw$")), axis=1, inplace=True)
+data2.drop(['Unnamed: 0', 'date', 'model', 'serial_number'], inplace=True, axis=1)
+y = data2['failure']
+X = data2.drop(['failure'], axis=1).fillna(0) # replace NAs with 0
+X = X.drop(drop_col, axis=1)
+X = scaler.transform(X)
 
+# PCA
+n_components = 2
+kpca = KernelPCA(n_components=n_components, kernel='rbf')
+X_kpca_test2 = kpca.fit_transform(X)
+print("Kernel PCA X_train data:", X_kpca_test2.shape)
 
+# GNB
+gnb_pred = gnb.predict(X_kpca_test2)
+model_metrics(y_test, gnb_pred, "Gaussian Naive Bayes")
+
+# LogReg
+logreg_pred = logreg.predict(X_kpca_test2)
+model_metrics(y_test, logreg_pred, "Logistic Regression")
+
+# KNN
+knn_pred = knn.predict(X_kpca_test2)
+model_metrics(y_test, knn_pred, "KNN")
+
+# Plot classifier
+
+plot_comparison = True
+if (n_components == 2) and plot_comparison:
+    classifiers = [gnb, logreg, knn]
+    names = ["Gaussian NB", "Logistic Regression", "KNN N=4"]
+
+    # define meshgrid
+    cm = plt.cm.RdBu
+    cm_bright = ListedColormap(['#FF0000', '#0000FF'])
+    h = 0.2
+    x_min, x_max = X_kpca_test2[:, 0].min() - .5, X_kpca_test2[:, 0].max() + .5
+    y_min, y_max = X_kpca_test2[:, 1].min() - .5, X_kpca_test2[:, 1].max() + .5
+    xx, yy = np.meshgrid(np.arange(x_min, x_max, h), np.arange(y_min, y_max, h))
+
+    figure = plt.figure(figsize=(13, 5))
+    for i in range(len(classifiers)):
+        name = names[i]
+        clf = classifiers[i]
+
+        ax = plt.subplot(1, len(classifiers), i + 1)
+        if hasattr(clf, "decision_function"):
+            Z = clf.decision_function(np.c_[xx.ravel(), yy.ravel()])
+        else:
+            Z = clf.predict_proba(np.c_[xx.ravel(), yy.ravel()])[:, 1]
+
+        # Put the result into a color plot
+        Z = Z.reshape(xx.shape)
+        ax.contourf(xx, yy, Z, cmap=cm, alpha=.8)
+
+        # Plot the training points - uncomment to plot training data points
+        #ax.scatter(X_kpca_train[:, 0], X_kpca_train[:, 1], c=y_train, cmap=cm_bright, edgecolors='k', marker='.', alpha=0.5)
+        # Plot the testing points
+        ax.scatter(X_kpca_test2[:, 0], X_kpca_test2[:, 1], c=y_test, cmap=cm_bright, edgecolors='k', alpha=0.6)
+
+        ax.set_xlim(xx.min(), xx.max())
+        ax.set_ylim(yy.min(), yy.max())
+        ax.set_xticks(())
+        ax.set_yticks(())
+        ax.set_title(name)
+        # ax.text(xx.max() - .3, yy.min() + .3, ('%.2f' % score).lstrip('0'),
+        #        size=15, horizontalalignment='right')
+
+    plt.tight_layout()
+    plt.show()
