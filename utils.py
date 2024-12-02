@@ -130,7 +130,7 @@ def get_best_kpca_n_components(X_train, components_to_test=30):
     plt.plot(np.cumsum(kpca_test.eigenvalues_), label="Cumulative Sum of Eigenvalues")
     plt.xlabel('Number of Components')
     plt.ylabel('Cumulative Sum of Eigenvalues')
-    plt.title('First 2 PCA components Scatterplot')
+    plt.title('Kernel PCA n_component Selection')
     plt.hlines(0.95 * total_eig, 0, components_to_test, alpha=0.5, color='r', label="95% Explained Variance")
     plt.legend()
     plt.show()
@@ -170,6 +170,7 @@ def get_best_knn_neighbors(X_train, y_train, k=5, max_neighbors=20):
             print(i)
         best_n = best_n[-1]
 
-    print("Best KNN n_neighbors:", best_n[0])
 
-    return best_n[0]
+    print("Best KNN n_neighbors:", best_n)
+
+    return best_n

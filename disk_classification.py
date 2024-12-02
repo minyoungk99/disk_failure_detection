@@ -8,14 +8,17 @@ from sklearn.neighbors import KNeighborsClassifier
 import utils
 
 #model = 'WDC WD1600AAJS'
-model= 'WDC WD20EFRX' #k_neighbors 2
-#model = 'ST4000DX000'
+#model= 'WDC WD20EFRX'
+model = 'ST4000DX000'
 path = '.\\data\\' + model + '_data.csv'
 X, y = utils.import_smart_data(path)
 columns = X.columns
 
 # SMOTE imbalanced data
-sm = SMOTE(random_state=99, k_neighbors=2)
+# k_neighbors=1 if WDC WDC WD1600AAJS else error
+# k_neighbors=2 if WDC WD20EFRX else error
+# k_neighbors=1 if ST4000DX000 else error
+sm = SMOTE(random_state=99, k_neighbors=1)
 X_res, y_res = sm.fit_resample(X, y)
 
 # shuffle and split train/test
@@ -30,8 +33,8 @@ X_test = scaler.transform(X_test)
 utils.plot_hist_by_class(X_train, y_train, 6,3 , columns)
 
 # Gaussian Kernel PCA
-#n_components = utils.get_best_kpca_n_components(X_train)
-n_components = 2
+n_components = utils.get_best_kpca_n_components(X_train)
+#n_components = 2
 kpca = KernelPCA(n_components=n_components, kernel='rbf')
 X_kpca_train = kpca.fit_transform(X_train)
 X_kpca_test = kpca.transform(X_test)
