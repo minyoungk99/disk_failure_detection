@@ -31,7 +31,7 @@ def plot_by_date(X, nrow, ncol):
 '''
 
 # ST6000DX000
-data = pd.read_csv('.\\data\\ST4000DX000_data.csv')
+data = pd.read_csv('.\\data\\WDC WD1600AAJS_data.csv')
 #data = pd.read_csv('.\\data\\ST4000DM000_data.csv')
 data.drop(list(data.filter(regex="raw$")), axis=1, inplace=True)
 
@@ -111,19 +111,20 @@ failure = X_train[y_train == 1]
 def scatter_class(X, y):
     good = X[y==0,:]
     fail = X[y==1,:]
-    plt.scatter(good[:,0], good[:,1], color='b', marker='.')
-    plt.scatter(fail[:,0], fail[:,1], color='r', marker='.')
+    plt.scatter(good[:,0], good[:,1], color='b', marker='.', label='Non-failures')
+    plt.scatter(fail[:,0], fail[:,1], color='r', marker='.', label='Failures')
+    plt.legend()
     plt.show()
 
 #pca = PCA(n_components=11)
-#pca = PCA(n_components=2)
-#X_pca_train = pca.fit_transform(X_train)
-#print("PCA X_train data:", X_pca_train.shape)
+pca = PCA(n_components=2)
+X_pca_train = pca.fit_transform(X_train)
+print("PCA X_train data:", X_pca_train.shape)
 
 # pca the test dataset
-#X_pca_test = pca.transform(X_test)
-#scatter_class(X_pca_train, y_train)
-
+X_pca_test = pca.transform(X_test)
+scatter_class(X_pca_train, y_train)
+print('done')
 ####### Kernel PCA #######
 # plot from https://www.baeldung.com/cs/pca
 #kpca_test = KernelPCA(kernel='rbf', n_components=30).fit(X_train)
