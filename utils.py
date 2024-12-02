@@ -5,6 +5,8 @@ from sklearn.metrics import roc_auc_score
 from matplotlib.colors import ListedColormap
 import numpy as np
 from sklearn.decomposition import KernelPCA
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.model_selection import cross_validate
 
 '''
 Reads in single model's data and drops unnecessary columns
@@ -67,11 +69,8 @@ def model_metrics(y_true, y_pred, model_name=''):
 
     # plot confusion matrix
     skplt.metrics.plot_confusion_matrix(y_true, y_pred)
-    plt.title(model_name + " Confusion Matrix - AUC " + auc)
+    plt.title(model_name + " Confusion Matrix - AUC "+ str(auc))
     plt.show()
-
-
-
 
 '''
 Code referenced from OMSA ISYE6740 Module 9 demo code
@@ -132,6 +131,7 @@ def get_best_kpca_n_components(X_train, components_to_test=30):
     plt.plot(np.cumsum(kpca_test.eigenvalues_), label="Cumulative Sum of Eigenvalues")
     plt.xlabel('Number of Components')
     plt.ylabel('Cumulative Sum of Eigenvalues')
+    plt.title('First 2 PCA components Scatterplot')
     plt.hlines(0.95 * total_eig, 0, components_to_test, alpha=0.5, color='r', label="95% Explained Variance")
     plt.legend()
     plt.show()
@@ -140,14 +140,37 @@ def get_best_kpca_n_components(X_train, components_to_test=30):
     #   print(ind, val)
 
     eigen_thres = total_eig * 0.95
-    print("threshold", eigen_thres)
     n_components = 2
     for ind, val in enumerate(np.cumsum(kpca_test.eigenvalues_)):
-        print(ind, val, eigen_thres)
         if val >= eigen_thres:
             n_components = ind + 1
-            print(n_components)
             break
 
     print("Best PCA n_components:", n_components)
     return n_components
+
+def get_best_knn_neighbors(X_train, y_train, k=5, max_neighbors=20):
+    cv_scores = []
+    n_neighbors = np.arange(1, max_neighbors)
+    for i in n_neighbors:
+        knn_test = KNeighborsClassifier(n_neighbors=i)
+        knn_test.fit(X_train, y_train)
+        cv_results = cross_validate(knn_test, X_train, y_train, cv=k)
+        cv_scores.append(np.mean(cv_results['test_score']))
+
+    plt.plot(n_neighbors,cv_scores)
+    plt.xlabel("Number of Neighbors")
+    plt.ylabel(str(k) + "-fold CV Mean Score")
+    plt.title("Best Number of Neighbors Selection for KNN")
+    plt.show()
+
+    best_n = n_neighbors[np.max(cv_scores) == cv_scores]
+    if len(best_n) > 1:
+        print("Multiple best n's")
+        for i in best_n:
+            print(i)
+        best_n = best_n[-1]
+
+    print("Best KNN n_neighbors:", best_n)
+
+    return best_n

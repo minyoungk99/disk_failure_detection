@@ -1,6 +1,3 @@
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
 from imblearn.over_sampling import SMOTE
 from sklearn.model_selection import train_test_split, cross_validate
 from sklearn.preprocessing import StandardScaler
@@ -45,7 +42,7 @@ utils.plot_2d_pca(X_kpca_train, y_train)
 gnb = GaussianNB() # default var_smoothing was fine
 gnb.fit(X_kpca_train, y_train)
 gnb_pred = gnb.predict(X_kpca_test)
-#utils.model_metrics(y_test, gnb_pred, "Gaussian Naive Bayes")
+utils.model_metrics(y_test, gnb_pred, "Gaussian Naive Bayes")
 
 # Logistic Regression
 logreg = LogisticRegression(random_state=99).fit(X_kpca_train, y_train)
@@ -53,7 +50,8 @@ logreg_pred = logreg.predict(X_kpca_test)
 utils.model_metrics(y_test, logreg_pred, "Logistic Regression")
 
 # KNN
-knn = KNeighborsClassifier(n_neighbors=4) # N=4 was one of best performers
+n_neighbors = utils.get_best_knn_neighbors(X_kpca_train, y_train)
+knn = KNeighborsClassifier(n_neighbors=n_neighbors) # N=4 was one of best performers
 knn.fit(X_kpca_train, y_train)
 knn_pred = knn.predict(X_kpca_test)
 utils.model_metrics(y_test, knn_pred, "KNN")
