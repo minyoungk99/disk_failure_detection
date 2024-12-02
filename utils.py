@@ -40,8 +40,8 @@ def plot_hist_by_class(X, y, nrow, ncol, columns):
     for i in range(nrow):
         for j in range(ncol):
             if (ncol*i+j) < working.shape[1]:
-                axs[i, j].hist(working[:, ncol*i + j], alpha=0.5, color='b', bins=15)
-                axs[i, j].hist(failure[:, ncol*i + j], alpha=0.5, color='r', bins=15)
+                axs[i, j].hist(working[:, ncol*i + j], alpha=0.5, color='b', bins=10)
+                axs[i, j].hist(failure[:, ncol*i + j], alpha=0.5, color='r', bins=10)
                 axs[i,j].set_xticklabels([])
                 axs[i, j].set_yticklabels([])
                 axs[i, j].set_title(columns[ncol*i + j], fontsize=8, pad=0)
@@ -109,8 +109,7 @@ def plot_classifer_comparison(classifiers, names, X, y, y_is_pred=False):
             # ax.scatter(X_kpca_train[:, 0], X_kpca_train[:, 1], c=y_train, cmap=cm_bright, edgecolors='k', marker='.', alpha=0.5)
             # Plot the testing points
             if y_is_pred:
-                for n in range(len(y)): # list of arrays
-                    ax.scatter(X[:, 0], X[:, 1], c=y[n], cmap=cm_bright, edgecolors='k', alpha=0.6)
+                    ax.scatter(X[:, 0], X[:, 1], c=y[i], cmap=cm_bright, edgecolors='k', alpha=0.6)
             else:
                 ax.scatter(X[:, 0], X[:, 1], c=y, cmap=cm_bright, edgecolors='k', alpha=0.6)
 
@@ -171,6 +170,6 @@ def get_best_knn_neighbors(X_train, y_train, k=5, max_neighbors=20):
             print(i)
         best_n = best_n[-1]
 
-    print("Best KNN n_neighbors:", best_n)
+    print("Best KNN n_neighbors:", best_n[0])
 
-    return best_n
+    return best_n[0]

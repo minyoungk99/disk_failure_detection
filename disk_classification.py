@@ -7,15 +7,15 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.neighbors import KNeighborsClassifier
 import utils
 
-model = 'WDC WD1600AAJS'
-#model= 'WDC WD20EFRX'
+#model = 'WDC WD1600AAJS'
+model= 'WDC WD20EFRX' #k_neighbors 2
 #model = 'ST4000DX000'
 path = '.\\data\\' + model + '_data.csv'
 X, y = utils.import_smart_data(path)
 columns = X.columns
 
 # SMOTE imbalanced data
-sm = SMOTE(random_state=99, k_neighbors=1)
+sm = SMOTE(random_state=99, k_neighbors=2)
 X_res, y_res = sm.fit_resample(X, y)
 
 # shuffle and split train/test
@@ -27,14 +27,11 @@ X_train = scaler.fit_transform(X_train)
 X_test = scaler.transform(X_test)
 
 # visualize column distribution
-utils.plot_hist_by_class(X_train, y_train, 7,4 , columns)
+utils.plot_hist_by_class(X_train, y_train, 6,3 , columns)
 
 # Gaussian Kernel PCA
-n_components = utils.get_best_kpca_n_components(X_train)
-
-
-
-#n_components = 9 # this was the number of components accounting for 95% of sum of eigenvalues for ST4000DX000
+#n_components = utils.get_best_kpca_n_components(X_train)
+n_components = 2
 kpca = KernelPCA(n_components=n_components, kernel='rbf')
 X_kpca_train = kpca.fit_transform(X_train)
 X_kpca_test = kpca.transform(X_test)
@@ -58,10 +55,14 @@ knn.fit(X_kpca_train, y_train)
 knn_pred = knn.predict(X_kpca_test)
 utils.model_metrics(y_test, knn_pred, "KNN")
 
-# plot classifier comparison
+# plot model boundary for train data
 classifiers = [gnb, logreg, knn]
-names = ["Gaussian NB", "Logistic Regression", "KNN N=4"]
+names = ["Gaussian NB", "Logistic Regression", "KNN"]
 utils.plot_classifer_comparison(classifiers, names, X_kpca_train, y_train)
+
+#plot model boundary for test data
+preds = [gnb_pred, logreg_pred, knn_pred]
+utils.plot_classifer_comparison(classifiers, names, X_kpca_test, preds, y_is_pred=True)
 
 '''
 ################### Try predicting on completely different disk model #######################
