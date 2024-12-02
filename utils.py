@@ -4,6 +4,7 @@ import scikitplot as skplt
 from sklearn.metrics import roc_auc_score
 from matplotlib.colors import ListedColormap
 import numpy as np
+from sklearn.decomposition import KernelPCA
 
 '''
 Reads in single model's data and drops unnecessary columns
@@ -13,12 +14,13 @@ def import_smart_data(path):
     data = pd.read_csv(path)
     data.drop(list(data.filter(regex="raw$")), axis=1, inplace=True)
     data.drop(['Unnamed: 0', 'date', 'model', 'serial_number'], inplace=True, axis=1)
+    print(data.groupby('failure').size())
     y = data['failure']
     X = data.drop(['failure'], axis=1).fillna(0) # replace NAs with 0
     drop_col = []
     for col in X.columns:
         a = X[col]
-        if len(a) == (sum(a==0)):
+        if (len(a) == (sum(a==0))) and (col != 'failure'):
             drop_col.append(col)
     X = X.drop(drop_col, axis=1)
 
@@ -27,12 +29,11 @@ def import_smart_data(path):
 
 '''
 Plots a histogram of all columns in X. Data associated wity y=1 (failure) in red, y=0 (working) in blue
-X must be a pandas dataframe.
+X is numpy array, not pandas dataframe.
 '''
-def plot_hist_by_class(X, y, nrow, ncol):
+def plot_hist_by_class(X, y, nrow, ncol, columns):
     working = X[y == 0]
     failure = X[y == 1]
-    columns = X.columns
     fig, axs = plt.subplots(nrow, ncol)
     for i in range(nrow):
         for j in range(ncol):
@@ -60,21 +61,26 @@ def plot_2d_pca(X, y):
 Given a y_true and y_pred from classifier model, plots confusion matrix and prints ROC AUC score.
 '''
 def model_metrics(y_true, y_pred, model_name=''):
+    # ROC AUC
+    auc = round(roc_auc_score(y_true, y_pred), 3)
+    print(model_name + " ROC AUC score:", auc)
+
     # plot confusion matrix
     skplt.metrics.plot_confusion_matrix(y_true, y_pred)
-    plt.title(model_name + " Confusion Matrix")
+    plt.title(model_name + " Confusion Matrix - AUC " + auc)
     plt.show()
 
-    # ROC AUC
-    print(model_name + " ROC AUC score:", round(roc_auc_score(y_true, y_pred), 3))
+
 
 
 '''
 Code referenced from OMSA ISYE6740 Module 9 demo code
 Given a list of fitted classifiers,  list of classifer names in string, X and y data,
 plots the data colored by y and the classifier's decision boundaries.
+If y_is_pred=False, y is a single array of labels for training data
+If it's true, then y is a list of arrays, each array holding y-predictions for each classifier.
 '''
-def plot_classifer_comparison(classifiers, names, X, y):
+def plot_classifer_comparison(classifiers, names, X, y, y_is_pred=False):
     # 2d plots only
     if(X.shape[1] == 2):
         # define meshgrid
@@ -103,7 +109,11 @@ def plot_classifer_comparison(classifiers, names, X, y):
             # Plot the training points - uncomment to plot training data points
             # ax.scatter(X_kpca_train[:, 0], X_kpca_train[:, 1], c=y_train, cmap=cm_bright, edgecolors='k', marker='.', alpha=0.5)
             # Plot the testing points
-            ax.scatter(X[:, 0], X[:, 1], c=y, cmap=cm_bright, edgecolors='k', alpha=0.6)
+            if y_is_pred:
+                for n in range(len(y)): # list of arrays
+                    ax.scatter(X[:, 0], X[:, 1], c=y[n], cmap=cm_bright, edgecolors='k', alpha=0.6)
+            else:
+                ax.scatter(X[:, 0], X[:, 1], c=y, cmap=cm_bright, edgecolors='k', alpha=0.6)
 
             ax.set_xlim(xx.min(), xx.max())
             ax.set_ylim(yy.min(), yy.max())
@@ -112,3 +122,32 @@ def plot_classifer_comparison(classifiers, names, X, y):
             ax.set_title(name)
         plt.tight_layout()
         plt.show()
+
+'''
+Plug in training data. Returns n_components such that the sum of their eigenvalues >= 95% of sum of all eigenvalues
+'''
+def get_best_kpca_n_components(X_train, components_to_test=30):
+    kpca_test = KernelPCA(kernel='rbf', n_components=components_to_test).fit(X_train)
+    total_eig = sum(kpca_test.eigenvalues_)
+    plt.plot(np.cumsum(kpca_test.eigenvalues_), label="Cumulative Sum of Eigenvalues")
+    plt.xlabel('Number of Components')
+    plt.ylabel('Cumulative Sum of Eigenvalues')
+    plt.hlines(0.95 * total_eig, 0, components_to_test, alpha=0.5, color='r', label="95% Explained Variance")
+    plt.legend()
+    plt.show()
+
+    # for ind, val in enumerate(np.cumsum(kpca_test.eigenvalues_)):
+    #   print(ind, val)
+
+    eigen_thres = total_eig * 0.95
+    print("threshold", eigen_thres)
+    n_components = 2
+    for ind, val in enumerate(np.cumsum(kpca_test.eigenvalues_)):
+        print(ind, val, eigen_thres)
+        if val >= eigen_thres:
+            n_components = ind + 1
+            print(n_components)
+            break
+
+    print("Best PCA n_components:", n_components)
+    return n_components

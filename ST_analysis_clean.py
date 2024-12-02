@@ -10,7 +10,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.neighbors import KNeighborsClassifier
 import utils
 
-model = 'ST31500541AS'
+model = 'WDC WD1600AAJS'
 path = '.\\data\\' + model + '_data.csv'
 X, y = utils.import_smart_data(path)
 columns = X.columns
@@ -31,8 +31,11 @@ X_test = scaler.transform(X_test)
 utils.plot_hist_by_class(X_train, y_train, 7,4 , columns)
 
 # Gaussian Kernel PCA
+n_components = utils.get_best_kpca_n_components(X_train)
+
+
+
 #n_components = 9 # this was the number of components accounting for 95% of sum of eigenvalues for ST4000DX000
-n_components = 2
 kpca = KernelPCA(n_components=n_components, kernel='rbf')
 X_kpca_train = kpca.fit_transform(X_train)
 X_kpca_test = kpca.transform(X_test)
@@ -42,7 +45,7 @@ utils.plot_2d_pca(X_kpca_train, y_train)
 gnb = GaussianNB() # default var_smoothing was fine
 gnb.fit(X_kpca_train, y_train)
 gnb_pred = gnb.predict(X_kpca_test)
-utils.model_metrics(y_test, gnb_pred, "Gaussian Naive Bayes")
+#utils.model_metrics(y_test, gnb_pred, "Gaussian Naive Bayes")
 
 # Logistic Regression
 logreg = LogisticRegression(random_state=99).fit(X_kpca_train, y_train)
