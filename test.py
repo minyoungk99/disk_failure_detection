@@ -25,5 +25,10 @@ data.drop(list(data.filter(regex="raw$")), axis=1, inplace=True)
 #x.to_csv('.\\data\\hitachi_data.csv')
 
 # data for ST4000DM000
-x = data[data['model'] =='ST4000DM000']
-x.to_csv('.\\data\\ST4000DM000_data.csv')
+# too big to do any analysis/pca
+#x = data[data['model'] =='ST4000DM000']
+#x.to_csv('.\\data\\ST4000DM000_data.csv')
+
+# data for
+x = data[data['model'] =='ST500LM012 HN']
+x.to_csv('.\\data\\ST500LM012 HN_data.csv')

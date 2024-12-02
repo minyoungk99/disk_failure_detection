@@ -148,6 +148,7 @@ def scatter_class(X, y):
     plt.xlabel("Principal Component 1")
     plt.ylabel("Principal Component 2")
     plt.show()
+    '''
     plt.scatter(good[:, 0], good[:, 2], color='b', marker='.')
     plt.scatter(fail[:, 0], fail[:, 2], color='r', marker='.')
     plt.xlabel("Principal Component 1")
@@ -158,6 +159,7 @@ def scatter_class(X, y):
     plt.xlabel("Principal Component 1")
     plt.ylabel("Principal Component 4")
     plt.show()
+    '''
 
 n_components = 2
 kpca = KernelPCA(n_components=n_components, kernel='rbf')
@@ -293,12 +295,14 @@ if (n_components == 2) and plot_comparison:
 
 
 ### Test on different model from same manufacturer
-data2 = pd.read_csv('.\\data\\ST6000DX000_data.csv')
+data2 = pd.read_csv('.\\data\\ST500LM012 HN_data.csv')
 data2.drop(list(data2.filter(regex="raw$")), axis=1, inplace=True)
 data2.drop(['Unnamed: 0', 'date', 'model', 'serial_number'], inplace=True, axis=1)
 y = data2['failure']
 X = data2.drop(['failure'], axis=1).fillna(0) # replace NAs with 0
+print(data2.groupby('failure').size())
 X = X.drop(drop_col, axis=1)
+#X, y = sm.fit_resample(X, y)
 X = scaler.transform(X)
 
 # PCA
@@ -307,17 +311,19 @@ kpca = KernelPCA(n_components=n_components, kernel='rbf')
 X_kpca_test2 = kpca.fit_transform(X)
 print("Kernel PCA X_train data:", X_kpca_test2.shape)
 
+scatter_class(X_kpca_test2, y)
+
 # GNB
 gnb_pred = gnb.predict(X_kpca_test2)
-model_metrics(y_test, gnb_pred, "Gaussian Naive Bayes")
+model_metrics(y, gnb_pred, "Gaussian Naive Bayes")
 
 # LogReg
 logreg_pred = logreg.predict(X_kpca_test2)
-model_metrics(y_test, logreg_pred, "Logistic Regression")
+model_metrics(y, logreg_pred, "Logistic Regression")
 
 # KNN
 knn_pred = knn.predict(X_kpca_test2)
-model_metrics(y_test, knn_pred, "KNN")
+model_metrics(y, knn_pred, "KNN")
 
 # Plot classifier
 
@@ -352,7 +358,7 @@ if (n_components == 2) and plot_comparison:
         # Plot the training points - uncomment to plot training data points
         #ax.scatter(X_kpca_train[:, 0], X_kpca_train[:, 1], c=y_train, cmap=cm_bright, edgecolors='k', marker='.', alpha=0.5)
         # Plot the testing points
-        ax.scatter(X_kpca_test2[:, 0], X_kpca_test2[:, 1], c=y_test, cmap=cm_bright, edgecolors='k', alpha=0.6)
+        ax.scatter(X_kpca_test2[:, 0], X_kpca_test2[:, 1], c=y, cmap=cm_bright, edgecolors='k', alpha=0.6)
 
         ax.set_xlim(xx.min(), xx.max())
         ax.set_ylim(yy.min(), yy.max())
