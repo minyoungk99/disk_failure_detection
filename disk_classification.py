@@ -8,8 +8,8 @@ from sklearn.neighbors import KNeighborsClassifier
 import utils
 
 #model = 'WDC WD1600AAJS'
-#model= 'WDC WD20EFRX'
-model = 'ST4000DX000'
+model= 'WDC WD20EFRX'
+#model = 'ST4000DX000'
 path = '.\\data\\' + model + '_data.csv'
 X, y = utils.import_smart_data(path)
 columns = X.columns

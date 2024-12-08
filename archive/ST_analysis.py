@@ -31,8 +31,8 @@ def plot_by_date(X, nrow, ncol):
 '''
 
 # ST6000DX000
-data = pd.read_csv('.\\data\\WDC WD1600AAJS_data.csv')
-#data = pd.read_csv('.\\data\\ST4000DM000_data.csv')
+#data = pd.read_csv('.\\data\\WDC WD1600AAJS_data.csv')
+data = pd.read_csv('..\\data\\ST4000DX000_data.csv')
 data.drop(list(data.filter(regex="raw$")), axis=1, inplace=True)
 
 # pick serial number  Z305B2QN, sort by date, and see if any stats are cumulative
@@ -58,10 +58,13 @@ for col in X.columns:
         drop_col.append(col)
 X = X.drop(drop_col, axis=1)
 
-# print(data.groupby('failure').size())
+print('bytes', X['capacity_bytes'].unique())
+
+print(data.groupby('failure').size())
 # 1.681M ok, 139 failures. Data is very imbalanced, so we will use SMOTE to make 50/50 classes
 sm = SMOTE(random_state=99, k_neighbors=1)
 X_res, y_res = sm.fit_resample(X, y)
+print(X_res.shape)
 
 # shuffle, split train/test
 # train 2522001 rows, test 840667 rows
