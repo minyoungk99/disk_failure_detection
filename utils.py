@@ -39,6 +39,7 @@ def plot_hist_by_class(X, y, nrow, ncol, columns):
     fig, axs = plt.subplots(nrow, ncol)
     for i in range(nrow):
         for j in range(ncol):
+            print(columns[ncol*i+j])
             if (ncol*i+j) < working.shape[1]:
                 axs[i, j].hist(working[:, ncol*i + j], alpha=0.5, color='b', bins=10)
                 axs[i, j].hist(failure[:, ncol*i + j], alpha=0.5, color='r', bins=10)
